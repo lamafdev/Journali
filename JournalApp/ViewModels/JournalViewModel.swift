@@ -11,6 +11,9 @@ class JournalViewModel {
     
     var entries: [JournalEntry] = []
     var selectedSort: JournalSortOption = .entryDate
+    func deleteEntry(id: UUID) {
+        entries.removeAll { $0.id == id }
+    }
     var sortedEntryIDs: [UUID] {
         sortedEntries.map(\.id)
     }
@@ -34,5 +37,22 @@ class JournalViewModel {
 
     func addEntry(_ entry: JournalEntry) {
         entries.append(entry)
+    }
+    
+    var searchText: String = ""
+
+    var filteredEntries: [JournalEntry] {
+        guard !searchText.isEmpty else {
+            return sortedEntries
+        }
+
+        return sortedEntries.filter { entry in
+            entry.title.localizedCaseInsensitiveContains(searchText) ||
+            entry.content.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+
+    var filteredEntryIDs: [UUID] {
+        filteredEntries.map(\.id)
     }
 }

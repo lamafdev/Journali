@@ -32,7 +32,8 @@ struct JournalToolbar: View {
         .padding(12)
         .glassEffect(
             .regular.tint(
-                Color(red: 0.150, green: 0.150, blue: 0.150, opacity: 1.00)
+                Color(red: 0.12, green: 0.12, blue: 0.13)
+                    .opacity(1)
             ),
             in: .rect(cornerRadius: 24)
         )
@@ -68,7 +69,8 @@ struct JournalToolbar: View {
                 .frame(width: 250, alignment: .leading)
                 .glassEffect(
                     .regular.tint(
-                        Color(red: 0.150, green: 0.150, blue: 0.150, opacity: 1.00)
+                        Color(red: 0.12, green: 0.12, blue: 0.13)
+                            .opacity(1)
                     ),
                     in: .rect(cornerRadius: 24)
                 )
@@ -83,6 +85,7 @@ struct JournalToolbar: View {
 struct SearchToolbar: View {
 
     @Binding var searchText: String
+    @State private var speechRecognizer = SpeechRecognizer()
 
     var body: some View {
 
@@ -103,16 +106,22 @@ struct SearchToolbar: View {
 
             )
 
-
-                        Button{
-                //action later
+            Button {
+                Task {
+                    if speechRecognizer.isRecording {
+                        speechRecognizer.stopRecording()
+                    } else {
+                        await speechRecognizer.startRecording()
+                    }
+                }
+            } label: {
+                Image(systemName: speechRecognizer.isRecording ? "mic.fill" : "mic")
+                    .foregroundStyle(
+                        speechRecognizer.isRecording ? .red : .white
+                    )
             }
-            label:{
-                
-                Image(systemName: "mic")
-                    .font(.system(size: 22))
-                    .foregroundStyle(.white.opacity(0.5))
-
+            .onChange(of: speechRecognizer.recognizedText) { _, newText in
+                searchText = newText
             }
         }
         .font(.system(size: 18))
