@@ -9,8 +9,43 @@ enum JournalSortOption {
 @Observable
 class JournalViewModel {
     
-    var entries: [JournalEntry] = []
+    var entries: [JournalEntry] = [] {
+        didSet {
+            saveEntries()
+        }
+    }
+    
+    private let storageKey = "savedJournalEntries"
+
+    init() {
+        loadEntries()
+    }
+    private func saveEntries() {
+        do {
+            let data = try JSONEncoder().encode(entries)
+            UserDefaults.standard.set(data, forKey: storageKey)
+        } catch {
+            print("Failed to save entries: \(error)")
+        }
+    }
+
+    private func loadEntries() {
+        guard let data = UserDefaults.standard.data(forKey: storageKey) else {
+            return
+        }
+
+        do {
+            entries = try JSONDecoder().decode([JournalEntry].self, from: data)
+        } catch {
+            print("Failed to load entries: \(error)")
+        }
+    }
+    
+    
+    
     var selectedSort: JournalSortOption = .entryDate
+    
+    
     func deleteEntry(id: UUID) {
         entries.removeAll { $0.id == id }
     }
@@ -34,9 +69,21 @@ class JournalViewModel {
             }
         }
     }
+    
+    
+    
 
     func addEntry(_ entry: JournalEntry) {
         entries.append(entry)
+    }
+    
+    func updateEntry(id: UUID, title: String, content: String) {
+        guard let index = entries.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+
+        entries[index].title = title
+        entries[index].content = content
     }
     
     var searchText: String = ""
@@ -51,6 +98,8 @@ class JournalViewModel {
             entry.content.localizedCaseInsensitiveContains(searchText)
         }
     }
+    
+    
 
     var filteredEntryIDs: [UUID] {
         filteredEntries.map(\.id)

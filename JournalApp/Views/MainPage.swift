@@ -6,6 +6,7 @@ struct MainPage: View {
 @State private var viewModel = JournalViewModel()
 @State private var showAddEntry = false
 @State private var entryToDelete: UUID?
+@State private var entryToEdit: JournalEntry?
     var body: some View {
         
  ZStack{
@@ -68,23 +69,26 @@ struct MainPage: View {
                 ForEach(viewModel.filteredEntryIDs, id: \.self) { id in
                     if let index = viewModel.entries.firstIndex(where: { $0.id == id }) {
 
-                        JournalEntryCard(entry: $viewModel.entries[index])
+                  JournalEntryCard(entry: $viewModel.entries[index])
                             .listRowInsets(
                                 EdgeInsets(
                                     top: 10,
                                     leading: 20,
                                     bottom: 8,
-                                    trailing: 18
-                                )
-                            )
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    trailing: 18)
+                         )
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) {
                                     entryToDelete = id
                                 } label: {
                                     Label("", systemImage: "trash")
                                 }
+
+                            }
+                            .onTapGesture {
+                                entryToEdit = viewModel.entries[index]
                             }
                     }
                 }
@@ -123,6 +127,19 @@ struct MainPage: View {
                      )
                  )
              }
+             .presentationDragIndicator(.visible)
+         }
+         .sheet(item: $entryToEdit) { entry in
+             AddEntryView(
+                 existingEntry: entry,
+                 onSave: { title, content in
+                     viewModel.updateEntry(
+                         id: entry.id,
+                         title: title,
+                         content: content
+                     )
+                 }
+             )
              .presentationDragIndicator(.visible)
          }
          .alert(

@@ -10,6 +10,7 @@ struct AddEntryView: View {
     @FocusState private var isTitleFocused: Bool
     @Environment(\.dismiss) private var dismiss
     
+    var existingEntry: JournalEntry? = nil
     var onSave: (String, String) -> Void
     
     var body: some View {
@@ -22,25 +23,32 @@ struct AddEntryView: View {
                 
                 HStack {
                     
-                    Button {
-                        if !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-                            !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            
+                    Button {if let existingEntry {
+                        if title != existingEntry.title || content != existingEntry.content {
                             withAnimation(.easeInOut(duration: 0.2)) {
                                 showDiscardConfirmation = true
                             }
-                            
                         } else {
                             dismiss()
                         }
-                    } label: {
+                    } else if !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                              !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showDiscardConfirmation = true
+                        }
+                    } else {
+                        dismiss()
+                    }
+                }
+                    
+                    label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 20))
                             .foregroundStyle(.white)
                             .frame(width: 50, height: 50)
                             .glassEffect(
                                 .regular.tint(
-                                    Color(red: 0.100, green: 0.100, blue: 0.100, opacity: 1.00)                                        .opacity(0.7)
+                                    Color(red: 0.100, green: 0.100, blue: 0.100, opacity: 1.00)                                        .opacity(0.5)
                                 ),
                                 in: .circle
                             )
@@ -55,7 +63,7 @@ struct AddEntryView: View {
                         Image(systemName: "checkmark")
                             .font(.system(size: 24, weight: .medium))
                             .foregroundStyle(.black)
-                            .frame(width: 50, height: 50)
+                            .frame(width: 45, height: 45)
                             .glassEffect(
                                 .regular.tint(
                                     Color(red: 0.498, green: 0.506, blue: 1.000, opacity: 1.00)
@@ -64,8 +72,7 @@ struct AddEntryView: View {
                             )
                     }
                     .disabled(
-                        title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-                        content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
                     )
                 }
                 
@@ -80,7 +87,7 @@ struct AddEntryView: View {
                 .focused($isTitleFocused)
                 .tint(Color(red: 0.643, green: 0.601, blue: 1.000))
                 
-                Text(Date(), format: .dateTime
+                Text(existingEntry?.date ?? Date(), format: .dateTime
                     .day(.twoDigits)
                     .month(.twoDigits)
                     .year()
@@ -114,8 +121,12 @@ struct AddEntryView: View {
             .background(Color(red: 0.110, green: 0.110, blue: 0.118, opacity: 1.00).ignoresSafeArea())
             .foregroundStyle(.white)
             .task {
-                isTitleFocused = true
-                
+                if let existingEntry {
+                    title = existingEntry.title
+                    content = existingEntry.content
+                } else {
+                    isTitleFocused = true
+                }
             }
             
             
@@ -140,10 +151,11 @@ struct AddEntryView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         
                         Text("Are you sure you want to discard changes on this journal?")
-                            .font(.system(size: 17))
+                            .font(.system(size: 16))
                             .foregroundStyle(.white.opacity(0.75))
                             .fixedSize(horizontal: false, vertical: true)
-                            .padding(.bottom, 12)
+                            .padding(.bottom, 6)
+                            .padding(.leading, 6)
                         
                         Button {
                             dismiss()
@@ -183,7 +195,7 @@ struct AddEntryView: View {
                     }
                     .buttonStyle(.plain)
                     .padding(20)
-                    .frame(width: 320, height: 230)
+                    .frame(width: 300, height: 212)
                     // Dark translucent base
                     .background {
                         RoundedRectangle(cornerRadius: 32)
