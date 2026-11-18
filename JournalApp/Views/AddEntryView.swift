@@ -57,8 +57,14 @@ struct AddEntryView: View {
                     Spacer()
                     
                     Button {
-                        onSave(title, content)
+                        
+                        let finalTitle = title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            ? "Untitled"
+                            : title
+                        
+                        onSave(finalTitle, content)
                         dismiss()
+                        
                     } label: {
                         Image(systemName: "checkmark")
                             .font(.system(size: 24, weight: .medium))
@@ -72,7 +78,8 @@ struct AddEntryView: View {
                             )
                     }
                     .disabled(
-                        title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
+                        title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+                        content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                     )
                 }
                 
@@ -249,3 +256,5 @@ struct AddEntryView: View {
         }
     }
 }
+
+
